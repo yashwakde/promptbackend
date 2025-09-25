@@ -8,7 +8,8 @@ app.use(express.json());
 app.use(cookieParser());
 const allowedOrigins = [
     "http://localhost:5173",
-    "https://promptfrontend-two.vercel.app"
+    "https://promptfrontend-two.vercel.app",
+    "https://promptfrontend-two.vercel.app/"
 ];
 
 app.use(cors({
