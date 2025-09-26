@@ -10,6 +10,8 @@ const transporter = nodemailer.createTransport({
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_PASS,
   },
+  debug: true, // Enable debug mode
+  logger: true, // Log SMTP communication
 });
 
 export async function sendVerificationEmail(to, code) {
@@ -28,14 +30,6 @@ export async function sendVerificationEmail(to, code) {
   }
 }
 
-router.post("/testmail", async (req, res) => {
-  const { email } = req.body;
-  try {
-    await sendVerificationEmail(email, "123456");
-    res.status(200).json({ message: "Test email sent successfully!" });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to send test email", error: err.message });
-  }
-});
+
 
 export default router;
