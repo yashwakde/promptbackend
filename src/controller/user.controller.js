@@ -61,7 +61,12 @@ async function login(req, res) {
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
     res.status(200).json({
       message: "user logged in successfully",
     });
@@ -117,18 +122,22 @@ async function profile(req,res){
 }
 
 
-async function logout(req,res){
-   try{
-  res.clearCookie("token");
-  res.status(200).json({
-    message:"user logged out successfully"
-  })
-   }catch(err){
-  console.log(err);
-  res.status(500).json({
-    message: "Internal server error"
-  });
-   }
+async function logout(req, res) {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none"
+    });
+    res.status(200).json({
+      message: "user logged out successfully"
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Internal server error"
+    });
+  }
 }
 
 export { register, login, profile, logout, verifyEmail };
