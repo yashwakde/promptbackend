@@ -4,16 +4,6 @@ import nodemailer from "nodemailer";
 import express from "express";
 const router = express.Router();
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-  debug: true, // Enable debug mode
-  logger: true, // Log SMTP communication
-});
-
 export async function sendVerificationEmail(to, code) {
   try {
     await transporter.sendMail({
@@ -24,12 +14,9 @@ export async function sendVerificationEmail(to, code) {
       html: `<b>Your verification code is: ${code}</b>`,
     });
     console.log(`Verification email sent to ${to}`);
+    return true; // optional
   } catch (err) {
-    console.error(`Failed to send verification email to ${to}:`, err);
-    throw err;
+    console.error(`Failed to send verification email to ${to}:`, err.message);
+    return false; // continue registration without crashing
   }
 }
-
-
-
-export default router;
