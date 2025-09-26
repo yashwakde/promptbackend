@@ -11,11 +11,17 @@ const transporter = nodemailer.createTransport({
 });
    
 export async function sendVerificationEmail(to, code) {
-  await transporter.sendMail({
-    from: `"PromptVault" <${process.env.GMAIL_USER}>`,
-    to,
-    subject: "Your Verification Code",
-    text: `Your verification code is: ${code}`,
-    html: `<b>Your verification code is: ${code}</b>`
-  });
+  try {
+    await transporter.sendMail({
+      from: `"PromptVault" <${process.env.GMAIL_USER}>`,
+      to,
+      subject: "Your Verification Code",
+      text: `Your verification code is: ${code}`,
+      html: `<b>Your verification code is: ${code}</b>`
+    });
+    console.log(`Verification email sent to ${to}`);
+  } catch (err) {
+    console.error(`Failed to send verification email to ${to}:`, err);
+    throw err;
+  }
 }
