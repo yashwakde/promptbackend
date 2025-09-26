@@ -9,6 +9,7 @@ import promptroute from "./routes/prompt.route.js";
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 
 // ✅ CORS setup for Vercel frontend + local dev
 const allowedOrigins = [

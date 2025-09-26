@@ -8,19 +8,15 @@ async function register(req, res) {
   try {
     const { username, email, phone, password } = req.body;
 
-    // Check if user already exists
-    const existingUser = await usermodel.findOne({ username });
+    // Check if user already exists by username or email
+    const existingUser = await usermodel.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Generate a 6-digit verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Create the user
     const user = await usermodel.create({
       username,
       password: hashedPassword,
@@ -30,7 +26,6 @@ async function register(req, res) {
       verificationCode,
     });
 
-    // Send verification email
     try {
       await sendVerificationEmail(email, verificationCode);
     } catch (emailError) {
@@ -54,7 +49,6 @@ async function register(req, res) {
     res.status(500).json({ message: "Registration failed." });
   }
 }
-
 
 async function login(req, res) {
   try {
