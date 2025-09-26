@@ -101,24 +101,25 @@ async function verifyEmail(req, res) {
 }
 
 async function profile(req,res){
-    try{
-      const user = await usermodel.findById(req.user.id);
-        if(!user){
-            return res.status(404).json({
-                message:"user not found"
-            })
-        }
-        res.status(200).json({
-            user:{
-                id:user._id,
-                username:user.username,
-                email:user.email,
-                phone:user.phone,
-            }
-        })
-    }catch(err){
-        console.log(err);
+  try {
+    const user = await usermodel.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
+    return res.status(200).json({
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+      }
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Failed to fetch profile" });
+  }
 }
 
 

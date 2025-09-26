@@ -19,7 +19,14 @@ async function createprompt(req, res) {
         });
         return res.status(201).json({
             message: "Prompt created successfully",
-            prompt
+            prompt: {
+                id: prompt._id,
+                title: prompt.title,
+                description: prompt.description,
+                tag: prompt.tag,
+                user: prompt.user,
+                createdAt: prompt.createdAt
+            }
         });
     } catch (err) {
         console.log(err);
@@ -36,19 +43,20 @@ async function allprompt(req, res) {
             select: 'username'
         });
         const result = prompts.map(p => ({
+            id: p._id,
             username: p.user?.username || null,
             tag: p.tag,
             title: p.title,
             description: p.description,
             createdAt: p.createdAt
         }));
-        res.status(200).json({
-            message: "all prompts fetched successfully",
+        return res.status(200).json({
+            message: "All prompts fetched successfully",
             prompts: result
         });
     } catch (err) {
         console.log(err);
-        res.status(500).json({ message: "Failed to fetch prompts" });
+        return res.status(500).json({ message: "Failed to fetch prompts" });
     }
 }
 
@@ -59,19 +67,20 @@ async function myprompts(req, res) {
             select: 'username'
         });
         const result = prompts.map(p => ({
+            id: p._id,
             username: p.user?.username || null,
             tag: p.tag,
             title: p.title,
             description: p.description,
             createdAt: p.createdAt
         }));
-        res.status(200).json({
-            message: "user prompts fetched successfully",
+        return res.status(200).json({
+            message: "User prompts fetched successfully",
             prompts: result
         });
     } catch (err) {
         console.log(err);
-        res.status(500).json({ message: "Failed to fetch user prompts" });
+        return res.status(500).json({ message: "Failed to fetch user prompts" });
     }
 }
 export { createprompt ,allprompt,myprompts};
