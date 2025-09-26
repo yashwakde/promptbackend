@@ -1,4 +1,3 @@
-
 import usermodel from "../model/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -8,13 +7,14 @@ import { sendVerificationEmail } from "../utils/sendMail.js";
 async function register(req, res) {
   try {
     const { username, email, password, phone } = req.body;
-    const existinguser = await usermodel.findOne({ username });
-    if (existinguser) {
-      return res.status(400).json({
-        message: "user already exists.",
-      });
+    if (!username || !email || !password || !phone) {
+      return res.status(400).json({ message: "All fields are required." });
     }
 
+    const existinguser = await usermodel.findOne({ username });
+    if (existinguser) {
+      return res.status(400).json({ message: "User already exists." });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     // 6 digit numeric verification code
@@ -31,11 +31,12 @@ async function register(req, res) {
     await sendVerificationEmail(email, verificationCode);
 
     res.status(201).json({
-      message: "Registration successful! Please verify your email. Enter the code sent to your email.",
+      message: "Registration successful! Please verify your email.",
+      user: { id: user._id, username: user.username, email: user.email },
     });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Registration failed" });
+    console.error("Registration error:", err);
+    res.status(500).json({ message: "Registration failed." });
   }
 }
 
@@ -80,23 +81,31 @@ async function login(req, res) {
 async function verifyEmail(req, res) {
   try {
     const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ message: "Email and code are required." });
+    }
+
     const user = await usermodel.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found." });
     }
+
     if (user.isVerified) {
-      return res.status(400).json({ message: "User already verified" });
+      return res.status(400).json({ message: "User already verified." });
     }
+
     if (user.verificationCode !== code) {
-      return res.status(400).json({ message: "Invalid verification code" });
+      return res.status(400).json({ message: "Invalid verification code." });
     }
+
     user.isVerified = true;
     user.verificationCode = undefined;
     await user.save();
+
     res.status(200).json({ message: "Email verified successfully!" });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Verification failed" });
+    console.error("Email verification error:", err);
+    res.status(500).json({ message: "Verification failed." });
   }
 }
 

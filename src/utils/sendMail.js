@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
 import nodemailer from "nodemailer";
+import express from "express";
+const router = express.Router();
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -9,7 +11,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.GMAIL_PASS,
   },
 });
-   
+
 export async function sendVerificationEmail(to, code) {
   try {
     await transporter.sendMail({
@@ -17,7 +19,7 @@ export async function sendVerificationEmail(to, code) {
       to,
       subject: "Your Verification Code",
       text: `Your verification code is: ${code}`,
-      html: `<b>Your verification code is: ${code}</b>`
+      html: `<b>Your verification code is: ${code}</b>`,
     });
     console.log(`Verification email sent to ${to}`);
   } catch (err) {
@@ -25,3 +27,15 @@ export async function sendVerificationEmail(to, code) {
     throw err;
   }
 }
+
+router.post("/testmail", async (req, res) => {
+  const { email } = req.body;
+  try {
+    await sendVerificationEmail(email, "123456");
+    res.status(200).json({ message: "Test email sent successfully!" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to send test email", error: err.message });
+  }
+});
+
+export default router;
