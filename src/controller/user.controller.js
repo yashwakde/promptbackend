@@ -2,43 +2,59 @@ import usermodel from "../model/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-import { sendVerificationEmail } from "../utils/sendMail.js";
+ import { sendVerificationEmail } from "../utils/sendMail.js";
 
 async function register(req, res) {
   try {
-    const { username, email, password, phone } = req.body;
-    if (!username || !email || !password || !phone) {
-      return res.status(400).json({ message: "All fields are required." });
+    const { username, email, phone, password } = req.body;
+
+    // Check if user already exists
+    const existingUser = await usermodel.findOne({ username });
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
     }
 
-    const existinguser = await usermodel.findOne({ username });
-    if (existinguser) {
-      return res.status(400).json({ message: "User already exists." });
-    }
-
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    // 6 digit numeric verification code
+
+    // Generate a 6-digit verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Create the user
     const user = await usermodel.create({
       username,
-      email,
       password: hashedPassword,
+      email,
       phone,
       isVerified: false,
-      verificationCode
+      verificationCode,
     });
 
-    await sendVerificationEmail(email, verificationCode);
+    // Send verification email
+    try {
+      await sendVerificationEmail(email, verificationCode);
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+      return res.status(500).json({ message: "Failed to send verification email." });
+    }
 
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    res.cookie("token", token);
     res.status(201).json({
-      message: "Registration successful! Please verify your email.",
-      user: { id: user._id, username: user.username, email: user.email },
+      message: "User registered successfully. Please verify your email.",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone,
+      },
     });
   } catch (err) {
     console.error("Registration error:", err);
     res.status(500).json({ message: "Registration failed." });
   }
 }
+
 
 async function login(req, res) {
   try {
